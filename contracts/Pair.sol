@@ -83,7 +83,7 @@ contract Pair is ReentrancyGuard {
         uint amount0Out,
         uint amount1In,
         uint amount1Out
-    ) external returns (bool) {
+    ) public returns (bool) {
         // Ensure valid inputs
         require(amount0In > 0 || amount1In > 0, "Swap: invalid input amount");
         require(
