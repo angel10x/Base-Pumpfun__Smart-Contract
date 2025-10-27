@@ -26,11 +26,11 @@ contract Pair is ReentrancyGuard {
     address private lp;
 
     struct Pool {
-        uint256 reserve0;
-        uint256 reserve1;
-        uint256 _reserve1;
-        uint256 k;
-        uint256 lastUpdated;
+        uint reserve0;
+        uint reserve1;
+        uint _reserve1;
+        uint k;
+        uint lastUpdated;
     }
 
     Pool private pool;
@@ -47,13 +47,13 @@ contract Pair is ReentrancyGuard {
         _tokenB = token1;
     }
 
-    event Mint(uint256 reserve0, uint256 reserve1, address lp);
+    event Mint(uint reserve0, uint reserve1, address lp);
 
-    event Burn(uint256 reserve0, uint256 reserve1, address lp);
+    event Burn(uint reserve0, uint reserve1, address lp);
 
-    event Swap(uint256 amount0In, uint256 amount0Out, uint256 amount1In, uint256 amount1Out);
+    event Swap(uint amount0In, uint amount0Out, uint amount1In, uint amount1Out);
 
-    function mint(uint256 reserve0, uint256 reserve1, address _lp) public returns (bool) {
+    function mint(uint reserve0, uint reserve1, address _lp) public returns (bool) {
         lp = _lp;
 
         pool = Pool({
@@ -69,10 +69,10 @@ contract Pair is ReentrancyGuard {
         return true;
     }
 
-    function swap(uint256 amount0In, uint256 amount0Out, uint256 amount1In, uint256 amount1Out) public returns (bool) {
-        uint256 _reserve0 = (pool.reserve0 + amount0In) - amount0Out;
-        uint256 _reserve1 = (pool.reserve1 + amount1In) - amount1Out;
-        uint256 reserve1_ = (pool._reserve1 + amount1In) - amount1Out;
+    function swap(uint amount0In, uint amount0Out, uint amount1In, uint amount1Out) public returns (bool) {
+        uint _reserve0 = (pool.reserve0 + amount0In) - amount0Out;
+        uint _reserve1 = (pool.reserve1 + amount1In) - amount1Out;
+        uint reserve1_ = (pool._reserve1 + amount1In) - amount1Out;
 
         pool = Pool({
             reserve0: _reserve0,
@@ -87,13 +87,13 @@ contract Pair is ReentrancyGuard {
         return true;
     }
 
-    function burn(uint256 reserve0, uint256 reserve1, address _lp) public returns (bool) {
+    function burn(uint reserve0, uint reserve1, address _lp) public returns (bool) {
         require(_lp != address(0), "Zero addresses are not allowed.");
         require(lp == _lp, "Only Lp holders can call this function.");
 
-        uint256 _reserve0 = pool.reserve0 - reserve0;
-        uint256 _reserve1 = pool.reserve1 - reserve1;
-        uint256 reserve1_ = pool._reserve1 - reserve1;
+        uint _reserve0 = pool.reserve0 - reserve0;
+        uint _reserve1 = pool.reserve1 - reserve1;
+        uint reserve1_ = pool._reserve1 - reserve1;
 
         pool = Pool({
             reserve0: _reserve0,
@@ -108,7 +108,7 @@ contract Pair is ReentrancyGuard {
         return true;
     }
 
-    function _approval(address _user, address _token, uint256 amount) private returns (bool) {
+    function _approval(address _user, address _token, uint amount) private returns (bool) {
         require(_user != address(0), "Zero addresses are not allowed.");
         require(_token != address(0), "Zero addresses are not allowed.");
 
@@ -119,13 +119,13 @@ contract Pair is ReentrancyGuard {
         return true;
     }
 
-    function approval(address _user, address _token, uint256 amount) external nonReentrant returns (bool) {
+    function approval(address _user, address _token, uint amount) external nonReentrant returns (bool) {
         bool approved = _approval(_user, _token, amount);
 
         return approved;
     }
 
-    function transferETH(address _address, uint256 amount) public returns (bool) {
+    function transferETH(address _address, uint amount) public returns (bool) {
         require(_address != address(0), "Zero addresses are not allowed.");
 
         (bool os, ) = payable(_address).call{value: amount}("");
@@ -137,7 +137,7 @@ contract Pair is ReentrancyGuard {
         return lp;
     }
 
-    function MINIMUM_LIQUIDITY() public pure returns (uint256) {
+    function MINIMUM_LIQUIDITY() public pure returns (uint) {
         return 1 ether;
     }
 
@@ -153,23 +153,23 @@ contract Pair is ReentrancyGuard {
         return _tokenB;
     }
 
-    function getReserves() public view returns (uint256, uint256, uint256) {
+    function getReserves() public view returns (uint, uint, uint) {
         return (pool.reserve0, pool.reserve1, pool._reserve1);
     }
 
-    function kLast() public view returns (uint256) {
+    function kLast() public view returns (uint) {
         return pool.k;
     }
 
-    function priceALast() public view returns (uint256) {
+    function priceALast() public view returns (uint) {
         return pool.reserve1 / pool.reserve0;
     }
 
-    function priceBLast() public view returns (uint256) {
+    function priceBLast() public view returns (uint) {
         return pool.reserve0 / pool.reserve1;
     }
 
-    function balance() public view returns (uint256) {
+    function balance() public view returns (uint) {
         return address(this).balance;
     }
 }
