@@ -51,9 +51,18 @@ contract Pair is ReentrancyGuard {
 
     event Burn(uint reserve0, uint reserve1, address lp);
 
-    event Swap(uint amount0In, uint amount0Out, uint amount1In, uint amount1Out);
+    event Swap(
+        uint amount0In,
+        uint amount0Out,
+        uint amount1In,
+        uint amount1Out
+    );
 
-    function mint(uint reserve0, uint reserve1, address _lp) public returns (bool) {
+    function mint(
+        uint reserve0,
+        uint reserve1,
+        address _lp
+    ) public returns (bool) {
         lp = _lp;
 
         pool = Pool({
@@ -69,25 +78,50 @@ contract Pair is ReentrancyGuard {
         return true;
     }
 
-    function swap(uint amount0In, uint amount0Out, uint amount1In, uint amount1Out) public returns (bool) {
-        uint _reserve0 = (pool.reserve0 + amount0In) - amount0Out;
-        uint _reserve1 = (pool.reserve1 + amount1In) - amount1Out;
-        uint reserve1_ = (pool._reserve1 + amount1In) - amount1Out;
+    function swap(
+        uint amount0In,
+        uint amount0Out,
+        uint amount1In,
+        uint amount1Out
+    ) external returns (bool) {
+        // Ensure valid inputs
+        require(amount0In > 0 || amount1In > 0, "Swap: invalid input amount");
+        require(
+            amount0Out > 0 || amount1Out > 0,
+            "Swap: invalid output amount"
+        );
 
+        // Calculate new reserves
+        uint256 newReserve0;
+        uint256 newReserve1;
+        uint256 newReserve1Mirror;
+
+        unchecked {
+            newReserve0 = pool.reserve0 + amount0In - amount0Out;
+            newReserve1 = pool.reserve1 + amount1In - amount1Out;
+            newReserve1Mirror = pool._reserve1 + amount1In - amount1Out;
+        }
+
+        // Update pool state
         pool = Pool({
-            reserve0: _reserve0,
-            reserve1: _reserve1,
-            _reserve1: reserve1_,
+            reserve0: newReserve0,
+            reserve1: newReserve1,
+            _reserve1: newReserve1Mirror,
             k: pool.k,
             lastUpdated: block.timestamp
         });
 
+        // Emit swap event
         emit Swap(amount0In, amount0Out, amount1In, amount1Out);
 
         return true;
     }
 
-    function burn(uint reserve0, uint reserve1, address _lp) public returns (bool) {
+    function burn(
+        uint reserve0,
+        uint reserve1,
+        address _lp
+    ) public returns (bool) {
         require(_lp != address(0), "Zero addresses are not allowed.");
         require(lp == _lp, "Only Lp holders can call this function.");
 
@@ -108,7 +142,11 @@ contract Pair is ReentrancyGuard {
         return true;
     }
 
-    function _approval(address _user, address _token, uint amount) private returns (bool) {
+    function _approval(
+        address _user,
+        address _token,
+        uint amount
+    ) private returns (bool) {
         require(_user != address(0), "Zero addresses are not allowed.");
         require(_token != address(0), "Zero addresses are not allowed.");
 
@@ -119,7 +157,11 @@ contract Pair is ReentrancyGuard {
         return true;
     }
 
-    function approval(address _user, address _token, uint amount) external nonReentrant returns (bool) {
+    function approval(
+        address _user,
+        address _token,
+        uint amount
+    ) external nonReentrant returns (bool) {
         bool approved = _approval(_user, _token, amount);
 
         return approved;
